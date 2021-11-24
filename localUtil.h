@@ -4,9 +4,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define PAGE_SIZE   0x1000
-#define PAGE_MASK   (PAGE_SIZE - 1)
-
 #define DEFAULT_SEARCH_SIZE     0x80
 
 #define FINISH_IF(x) \
@@ -18,6 +15,13 @@
 #define SAFE_BAIL(x) \
     if (x) \
     { \
+        goto fail; \
+    }
+
+#define SAFE_PAIL(x, ...) \
+    if (x) \
+    { \
+        printf(__VA_ARGS__); \
         goto fail; \
     }
 
