@@ -6,6 +6,14 @@
 
 #define DEFAULT_SEARCH_SIZE     0x80
 
+#define PAGE_SIZE4K   0x1000
+#define PAGE_MASK4K   (PAGE_SIZE4K - 1)
+
+#ifdef __linux__
+#define PAGE_SIZE PAGE_SIZE4K
+#define PAGE_MASK PAGE_MASK4K
+#endif
+
 #define FINISH_IF(x) \
     if (x) \
     { \
@@ -44,6 +52,12 @@
     { \
         free(x); \
         x = 0; \
+    }
+
+#define SAFE_DEL(x) \
+    if (x) \
+    { \
+        delete x; \
     }
 
 size_t rstrnlen(const char* s, size_t maxlen);
