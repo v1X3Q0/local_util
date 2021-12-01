@@ -26,6 +26,12 @@
         goto fail; \
     }
 
+#define SAFE_CONT(x) \
+    if (x) \
+    { \
+        continue; \
+    }
+
 #define SAFE_PAIL(x, ...) \
     if (x) \
     { \
