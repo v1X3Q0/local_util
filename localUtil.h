@@ -10,8 +10,12 @@
 #define PAGE_MASK4K   (PAGE_SIZE4K - 1)
 
 #ifdef __linux__
+#ifndef PAGE_SIZE
 #define PAGE_SIZE PAGE_SIZE4K
+#endif
+#ifndef PAGE_MASK
 #define PAGE_MASK PAGE_MASK4K
+#endif
 #endif
 
 #define FINISH_IF(x) \
