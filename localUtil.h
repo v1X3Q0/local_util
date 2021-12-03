@@ -74,5 +74,6 @@ size_t rstrnlen(const char* s, size_t maxlen);
 size_t rfindnn(const char* s, size_t maxlen);
 int rstrncmp(const char* s1, const char* s2, size_t maxlen);
 void dumpMem(uint8_t* base, size_t len, char format);
+int block_grab(const char* fileTargName, void** allocBase, size_t* fSize);
 
 #endif
