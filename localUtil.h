@@ -27,6 +27,7 @@
 #define SAFE_BAIL(x) \
     if (x) \
     { \
+        printf("%s:%d\n", __FILE__, __LINE__); \
         goto fail; \
     }
 
@@ -68,6 +69,7 @@
     if (x) \
     { \
         delete x; \
+        x = 0; \
     }
 
 size_t rstrnlen(const char* s, size_t maxlen);
