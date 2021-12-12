@@ -129,3 +129,4 @@ fail:
     SAFE_FCLOSE(outFile);
     return result;
 }
+
