@@ -107,7 +107,14 @@ template<typename t, typename u>
 u vector_pair_key_find(std::vector<std::pair<t, u>>* targetVector, t lookupKey)
 {
     int newInd = vector_pair_ind<t, u>(targetVector, lookupKey);
-    return (*targetVector)[newInd].second;
+    if (newInd == -1)
+    {
+        return 0;
+    }
+    else
+    {
+        return (*targetVector)[newInd].second;
+    }
 }
 
 template<typename t, typename u>
