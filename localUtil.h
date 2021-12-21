@@ -53,6 +53,14 @@
         goto fail; \
     }
 
+#define SAFE_FAIL(x, ...) \
+    if (x) \
+    { \
+        fprintf(stderr, "ERROR %s:%d ", __FILE__, __LINE__); \
+        fprintf(stderr, __VA_ARGS__); \
+        goto fail; \
+    }
+
 #define SAFE_CLOSE(x) \
     if (x) \
     { \
