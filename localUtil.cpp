@@ -5,6 +5,7 @@
 
 #include "localUtil.h"
 
+// reverse strlen
 size_t rstrnlen(const char* s, size_t maxlen)
 {
     for (size_t i = 0; i < maxlen; i++, s--)
@@ -22,6 +23,7 @@ size_t rstrnlen(const char* s, size_t maxlen)
     return maxlen;
 }
 
+// reverse find next non-null character
 size_t rfindnn(const char* s, size_t maxlen)
 {
     for (size_t i = 0; i < maxlen; i++, s--)
