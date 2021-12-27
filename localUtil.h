@@ -89,6 +89,12 @@
         x = 0; \
     }
 
+#define BIT_PAD(x, TYPE_AUTO, PAD_TO) \
+    if (((size_t)x % PAD_TO) != 0) \
+    { \
+        x = (TYPE_AUTO)((size_t)x + PAD_TO - ((size_t)x % PAD_TO)); \
+    }
+
 size_t rstrnlen(const char* s, size_t maxlen);
 size_t rfindnn(const char* s, size_t maxlen);
 int rstrncmp(const char* s1, const char* s2, size_t maxlen);
