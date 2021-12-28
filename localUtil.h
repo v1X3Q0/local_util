@@ -78,7 +78,7 @@
 #define SAFE_FREE(x) \
     if (x) \
     { \
-        free(x); \
+        free((void*)x); \
         x = 0; \
     }
 
