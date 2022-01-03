@@ -21,6 +21,23 @@
 #endif
 #endif
 
+#define CASE_OVERLAP_R1_IN_R2(reg1, reg1sz, reg2, reg2sz) \
+    ((reg1 >= reg2) && (reg1 < (reg2 + reg2sz)))
+    
+#define CASE_OVERLAP_R1_ENDS_R2(reg1, reg1sz, reg2, reg2sz) \
+    (((reg1 + reg1sz) >= reg2) && ((reg1 + reg1sz) < (reg2 + reg2sz)))
+
+#define CASE_OVERLAP_R1_EATS_R2(reg1, reg1sz, reg2, reg2sz) \
+    ((reg1 < reg2) && ((reg1 + reg1sz) >= (reg2 + reg2sz)))
+
+// first case, reg1 is inside of reg2
+// second case, reg1 ends in reg2
+// final case, reg1 encompasses reg2 
+#define OVERLAP_REGIONS(reg1, reg1sz, reg2, reg2sz) \
+    CASE_OVERLAP_R1_IN_R2(reg1, reg1sz, reg2, reg2sz) || \
+    CASE_OVERLAP_R1_ENDS_R2(reg1, reg1sz, reg2, reg2sz) || \
+    CASE_OVERLAP_R1_EATS_R2(reg1, reg1sz, reg2, reg2sz)
+    
 #define FINISH_IF(x) \
     if (x) \
     { \
