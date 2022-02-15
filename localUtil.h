@@ -4,9 +4,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <vector>
-#include <algorithm>
-
 #define DEFAULT_SEARCH_SIZE     0x80
 
 #define PAGE_SIZE4K   0x1000
@@ -115,45 +112,7 @@
 size_t rstrnlen(const char* s, size_t maxlen);
 size_t rfindnn(const char* s, size_t maxlen);
 int rstrncmp(const char* s1, const char* s2, size_t maxlen);
-void dumpMem(uint8_t* base, size_t len, char format);
 int block_grab(const char* fileTargName, void** allocBase, size_t* fSize);
-
-template<typename t, typename u>
-int vector_pair_ind(std::vector<std::pair<t, u>>* toSearch, t lookupKey)
-{
-    int indexOut = 0;
-
-    for (auto i = toSearch->begin(); i != toSearch->end(); i++)
-    {
-        if (i->first == lookupKey)
-        {
-            return indexOut;
-        }
-        indexOut++;
-    }
-    return -1;
-}
-
-template<typename t, typename u>
-u vector_pair_key_find(std::vector<std::pair<t, u>>* targetVector, t lookupKey)
-{
-    int newInd = vector_pair_ind<t, u>(targetVector, lookupKey);
-    if (newInd == -1)
-    {
-        return 0;
-    }
-    else
-    {
-        return (*targetVector)[newInd].second;
-    }
-}
-
-template<typename t, typename u>
-void vector_pair_sort(std::vector<std::pair<t, u>>* targetVector,
-    bool (*cmp)(std::pair<t, u>&, std::pair<t, u>&))
-{
-    std::sort(targetVector->begin(), targetVector->end(), cmp);
-}
 
 
 #endif
