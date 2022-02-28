@@ -118,6 +118,8 @@ size_t rfindnn(const char* s, size_t maxlen);
 int rstrncmp(const char* s1, const char* s2, size_t maxlen);
 int block_grab(const char* fileTargName, void** allocBase, size_t* fSize);
 unsigned long subint(const char* strbase, size_t strsize, int radix);
+int recurse_op(int (*routine_on_file)(const char*, int, void**),
+    const char* path_dir, int count, void** vargs);
 
 #ifdef __cplusplus
 }
