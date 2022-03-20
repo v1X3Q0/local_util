@@ -116,7 +116,8 @@ int recurse_op(int (*routine_on_file)(const char*, int, void**), const char* pat
     // printf("%s\n", path_dir);
 
     SAFE_BAIL(stat(path_dir, &fileStat) < 0)
-    if((fileStat.st_mode & __S_IFMT) == __S_IFREG)
+    // if((fileStat.st_mode & __S_IFMT) == __S_IFREG)
+    if(S_ISREG(fileStat.st_mode) != 0)
     {
         result = routine_on_file(path_dir, count, vargs);
         goto finish;

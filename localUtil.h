@@ -22,7 +22,7 @@
     ((reg1 >= reg2) && (reg1 < (reg2 + reg2sz)))
     
 #define CASE_OVERLAP_R1_ENDS_R2(reg1, reg1sz, reg2, reg2sz) \
-    (((reg1 + reg1sz) >= reg2) && ((reg1 + reg1sz) < (reg2 + reg2sz)))
+    (((reg1 + reg1sz) > reg2) && ((reg1 + reg1sz) < (reg2 + reg2sz)))
 
 #define CASE_OVERLAP_R1_EATS_R2(reg1, reg1sz, reg2, reg2sz) \
     ((reg1 < reg2) && ((reg1 + reg1sz) >= (reg2 + reg2sz)))
@@ -100,6 +100,13 @@
     if (x) \
     { \
         delete x; \
+        x = 0; \
+    }
+
+#define SAFE_CLOSEDIR(x) \
+    if (x) \
+    { \
+        closedir(x); \
         x = 0; \
     }
 
