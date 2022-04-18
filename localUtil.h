@@ -35,6 +35,9 @@
     CASE_OVERLAP_R1_ENDS_R2(reg1, reg1sz, reg2, reg2sz) || \
     CASE_OVERLAP_R1_EATS_R2(reg1, reg1sz, reg2, reg2sz)
     
+#define REGION_CONTAINS(reg, regSz, targ_addr) \
+    CASE_OVERLAP_R1_IN_R2(targ_addr, 0, reg, regSz)
+
 #define FINISH_IF(x) \
     if (x) \
     { \

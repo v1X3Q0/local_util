@@ -1,4 +1,5 @@
 #include <mach-o/loader.h>
+#include <mach-o/getsect.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,4 +75,38 @@ finish:
 fail:
     SAFE_FREE(proc_list);
     return EXIT_FAILURE;
+}
+
+int section_with_sym(struct mach_header_64* mach_header_tmp, size_t sym_address, struct section_64** section_64_out)
+{
+    int result = -1;
+    int cmd_index = 0;
+    int sec_index = 0;
+    struct load_command* lc_iter = (struct load_command*)&mach_header_tmp[1];
+    struct segment_command_64* lc_seg_tmp = 0;
+    struct section_64* lc_sec_tmp = 0;
+
+    for (; cmd_index < mach_header_tmp->ncmds; cmd_index++)
+    {
+        if (lc_iter->cmd == LC_SEGMENT_64)
+        {
+            lc_seg_tmp = (struct segment_command_64*)lc_iter;
+            lc_sec_tmp = (struct section_64*)&lc_seg_tmp[1];
+            for(sec_index = 0; sec_index < lc_seg_tmp->nsects; sec_index++)
+            {
+                FINISH_IF(REGION_CONTAINS(lc_sec_tmp[sec_index].addr, lc_sec_tmp[sec_index].size, sym_address));
+            }
+        }
+        lc_iter = (struct load_command*)((size_t)lc_iter + lc_iter->cmdsize);
+    }
+
+    goto fail;
+finish:
+    result = 0;
+    if (section_64_out != 0)
+    {
+        *section_64_out = lc_sec_tmp;
+    }
+fail:
+    return result;
 }
