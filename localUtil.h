@@ -57,6 +57,19 @@
 //         goto fail; \
 //     }
 
+#define SAFE_EXIT(x) \
+    if (x) \
+    { \
+        exit(0); \
+    }
+
+#define SAFE_PEXIT(x, ...) \
+    if (x) \
+    { \
+        printf(__VA_ARGS__); \
+        exit(0); \
+    }
+
 #define SAFE_CONT(x) \
     if (x) \
     { \

@@ -36,11 +36,12 @@ fail:
 
 int getpidbyname(const char* proc_name, pid_t* pid_out)
 {
-    int result = 0;
+    int result = -1;
     struct kinfo_proc *proc_list = NULL;
     size_t length = 0;
     int proc_count = 0;
     int proc_iter = 0;
+    const char* proc_name_iter = 0;
     
     static const int name[] = { CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0 };
 
@@ -60,7 +61,8 @@ int getpidbyname(const char* proc_name, pid_t* pid_out)
 
     for (proc_iter = 0; proc_iter < proc_count; proc_iter++)
     {
-        if (strcpy(proc_list[proc_iter].kp_proc.p_comm, proc_name) == 0)
+        proc_name_iter = proc_list[proc_iter].kp_proc.p_comm;
+        if (strcmp(proc_name_iter, proc_name) == 0)
         {
             goto finish;
         }
@@ -74,7 +76,7 @@ finish:
     }
 fail:
     SAFE_FREE(proc_list);
-    return EXIT_FAILURE;
+    return result;
 }
 
 int section_with_sym(struct mach_header_64* mach_header_tmp, size_t sym_address, struct section_64** section_64_out)
