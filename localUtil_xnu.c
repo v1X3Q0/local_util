@@ -94,9 +94,9 @@ int section_with_sym(struct mach_header_64* mach_header_tmp, size_t sym_address,
         {
             lc_seg_tmp = (struct segment_command_64*)lc_iter;
             lc_sec_tmp = (struct section_64*)&lc_seg_tmp[1];
-            for(sec_index = 0; sec_index < lc_seg_tmp->nsects; sec_index++)
+            for(sec_index = 0; sec_index < lc_seg_tmp->nsects; sec_index++, lc_sec_tmp++)
             {
-                FINISH_IF(REGION_CONTAINS(lc_sec_tmp[sec_index].addr, lc_sec_tmp[sec_index].size, sym_address));
+                FINISH_IF(REGION_CONTAINS(lc_sec_tmp->addr, lc_sec_tmp->size, sym_address));
             }
         }
         lc_iter = (struct load_command*)((size_t)lc_iter + lc_iter->cmdsize);
