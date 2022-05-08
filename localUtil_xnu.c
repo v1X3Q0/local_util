@@ -11,6 +11,34 @@
 #include "localUtil.h"
 #include "localUtil_xnu.h"
 
+int getsegbynamefromheader_64(struct mach_header_64* mach_header_tmp, const char* name, struct segment_command_64** seg_out)
+{
+    int result = -1;
+    int cmd_index = 0;
+    struct load_command* lc_iter = (struct load_command*)&mach_header_tmp[1];
+    struct segment_command_64* seg_tmp = 0;
+
+    for (; cmd_index < mach_header_tmp->ncmds; cmd_index++)
+    {
+        if (lc_iter->cmd == LC_SEGMENT_64)
+        {
+            seg_tmp = lc_iter;
+            FINISH_IF(strcmp(seg_tmp->segname, name) == 0);
+        }
+        lc_iter = (struct load_command*)((size_t)lc_iter + lc_iter->cmdsize);
+    }
+
+    goto fail;
+finish:
+    result = 0;
+    if (seg_out != 0)
+    {
+        *seg_out = lc_iter;
+    }
+fail:
+    return result;
+}
+
 int getloadcommandfrommach(struct mach_header_64* mach_header_tmp, uint32_t lc_targ, struct load_command** lc_res)
 {
     int result = -1;
