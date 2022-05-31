@@ -105,6 +105,20 @@
         x = 0; \
     }
 
+#define SAFE_HCLOSE(x) \
+    if (x) \
+    { \
+        CloseHandle(x); \
+        x = 0; \
+    }
+
+#define SAFE_LFREE(x) \
+    if (x) \
+    { \
+        LocalFree(x); \
+        x = 0; \
+    }
+
 #define SAFE_FREE(x) \
     if (x) \
     { \

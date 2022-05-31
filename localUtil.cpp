@@ -44,7 +44,11 @@ void dumpMem(uint8_t* base, size_t len, char format)
       }
       else if (format == 'q' || ((format == 0) && (sizeof(void*) == 8)))
       {
+#ifdef _WIN32
+         dumpMemT<uint64_t>(base, len, "0x%016llx ");
+#else
          dumpMemT<uint64_t>(base, len, "0x%016lx ");
+#endif
       }
    }
    printf("\n");

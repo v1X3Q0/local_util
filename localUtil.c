@@ -2,16 +2,20 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+
+#ifdef _WIN32
+#include <Windows.h>
+#else
 #include <dirent.h>
 #include <libgen.h>
-#include <string.h>
+#endif
+
 #ifdef __linux__ 
 #include <linux/limits.h>
 #elif defined(__APPLE__)
 #include <sys/syslimits.h>
 #endif
-#include <dirent.h>
-#include <sys/stat.h>
 
 #include "localUtil.h"
 
@@ -82,8 +86,11 @@ int block_grab(const char* fileTargName, void** allocBase, size_t* fSize)
         outfileSzPad = (outfileSz + PAGE_SIZE4K) & ~PAGE_MASK4K;
     }
 
+#ifdef _WIN32
+    *allocBase = VirtualAlloc(NULL, PAGE_SIZE4K, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+#else
     posix_memalign(allocBase, PAGE_SIZE4K, outfileSzPad);
-
+#endif
     fread(*allocBase, 1, outfileSz, outFile);
 
     if (fSize != 0)
@@ -112,6 +119,7 @@ unsigned long subint(const char* strbase, size_t strsize, int radix)
 int recurse_op(int (*routine_on_file)(const char*, int, void**), const char* path_dir, int count, void** vargs)
 {
     int result = -1;
+#ifndef _WIN32
     struct dirent *de; // Pointer for directory entry
     char path_tmp[PATH_MAX] = { 0 };
     DIR *dr = 0;
@@ -160,5 +168,6 @@ finish:
     SAFE_CLOSEDIR(dr);
     result = 0;
 fail:
+#endif
     return result;
 }

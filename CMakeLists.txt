@@ -1,9 +1,10 @@
 project(LOCAL_UTIL)
 
+set(SOURCES_LIST localUtil.c)
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(SOURCES_LIST localUtil.c localUtil_xnu.c)
-else()
-    set(SOURCES_LIST localUtil.c)
+    list(APPEND SOURCES_LIST localUtil_xnu.c)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    list(APPEND SOURCES_LIST localUtil_windows.c)
 endif()
 
 
