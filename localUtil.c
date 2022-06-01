@@ -66,41 +66,71 @@ int rstrncmp(const char* s1, const char* s2, size_t maxlen)
     return 0;
 }
 
+#ifdef _WIN32
+#define OSHANDLE HANDLE
+#define OPENREAD(fname) CreateFileA(fname, GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)
+// file to open
+// open for reading
+// share for reading
+// default security
+// existing file only
+// overlapped operation
+// no attr. template
+#define OSSEEK(handle, SEEK_DIR) SetFilePointer(handle, 0, 0, SEEK_DIR)
+#define OSFSZ(handle) GetFileSize(handle, NULL)
+#define OSBA(newAlloc, SZ_ALLOC) \
+    newAlloc = VirtualAlloc(NULL, SZ_ALLOC, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)
+#define SAFE_OSFCLOSE SAFE_HCLOSE
+#define OSREAD(oshandle, INBUF, NBYTES, OUTCOUNT) ReadFile(oshandle, INBUF, NBYTES, &OUTCOUNT, NULL);
+#else
+#define OSHANDLE FILE*
+#define OPENREAD(fname) fopen(fname, "r")
+#define OSSEEK(handle, SEEK_DIR) fseek(handle, 0, SEEK_DIR)
+#define OSFSZ(handle) ftell(handle)
+#define OSBA(newAlloc, SZ_ALLOC) \
+    posix_memalign(&newAlloc, PAGE_SIZE4K, SZ_ALLOC)
+#define SAFE_OSFCLOSE SAFE_FCLOSE
+#define OSREAD(oshandle, INBUF, NBYTES, OUTCOUNT) fread(INBUF, 1, NBYTES, oshandle)
+#endif
+
 int block_grab(const char* fileTargName, void** allocBase, size_t* fSize)
 {
     int result = -1;
-    FILE* outFile = 0;
+    OSHANDLE outFile = 0;
     size_t outfileSz = 0;
     size_t outfileSzPad = 0;
+    unsigned int outRead = 0;
     void* allocTmp = 0;
 
-    outFile = fopen(fileTargName, "r");
+    outFile = OPENREAD(fileTargName);
+
     SAFE_BAIL(outFile == 0);
     
-    fseek(outFile, 0, SEEK_END);
-    outfileSzPad = outfileSz = ftell(outFile);
-    fseek(outFile, 0, SEEK_SET);
+    OSSEEK(outFile, SEEK_END);    
+    outfileSzPad = outfileSz = OSFSZ(outFile);
+    OSSEEK(outFile, SEEK_SET);
 
     if ((outfileSz % PAGE_SIZE4K) != 0)
     {
         outfileSzPad = (outfileSz + PAGE_SIZE4K) & ~PAGE_MASK4K;
     }
 
-#ifdef _WIN32
-    *allocBase = VirtualAlloc(NULL, PAGE_SIZE4K, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-#else
-    posix_memalign(allocBase, PAGE_SIZE4K, outfileSzPad);
-#endif
-    fread(*allocBase, 1, outfileSz, outFile);
+    OSBA(allocTmp, outfileSzPad);
+    OSREAD(outFile, allocTmp, outfileSz, outRead);
 
     if (fSize != 0)
     {
         *fSize = outfileSz;
     }
 
+    if (allocBase != 0)
+    {
+        *allocBase = allocTmp;
+    }
+
     result = 0;
 fail:
-    SAFE_FCLOSE(outFile);
+    SAFE_OSFCLOSE(outFile);
     return result;
 }
 

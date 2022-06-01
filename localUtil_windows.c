@@ -25,20 +25,6 @@ void printLastError()
     LocalFree(messageBuffer);
 }
 
-void dumpData(size_t* dataBase, size_t dbSz)
-{
-	for (int i = 0; (i * sizeof(size_t)) < dbSz; i++)
-	{
-		if ((i % 4) == 0)
-		{
-			printf("\n");
-		}
-
-		printf("0x%016llx ", dataBase[i]);
-	}
-	printf("\n");
-}
-
 LPVOID isDriverLoaded(const wchar_t* targetLib)
 {
 	LPVOID drivers[ARRAY_SIZE];
@@ -133,7 +119,10 @@ fail:
 	return addrEntry;
 }
 
-size_t rdlsym(UINT8* libBase, const char* libName, size_t symName)
+// take a library base, look for an import from a library and then return the
+// resolution. Can be used if you have a library loaded in memory and want to
+// find the address of something that it imports.
+size_t ridlsym(UINT8* libBase, const char* libName, size_t symName)
 {
 	DWORD pe_base = 0;
 	IMAGE_OPTIONAL_HEADER* opt_head = 0;
@@ -195,5 +184,100 @@ size_t rdlsym(UINT8* libBase, const char* libName, size_t symName)
 fail:
 
 finish:
+	return result;
+}
+
+int get_pesection(UINT8* libBase, const char* section_name, IMAGE_SECTION_HEADER** section_a)
+{
+	size_t result = 0;
+	IMAGE_OPTIONAL_HEADER* opt_head = 0;
+	IMAGE_FILE_HEADER* coff_head = 0;
+	DWORD pe_head = 0;
+	IMAGE_SECTION_HEADER* section = 0;
+
+	// get the .edata section
+	SAFE_BAIL(*(UINT16*)(&libBase[0]) != IMAGE_DOS_SIGNATURE);
+	pe_head = *(DWORD*)(&libBase[PE_HEAD_PTR]);
+	SAFE_BAIL(*(DWORD*)(&(libBase[pe_head])) != IMAGE_NT_SIGNATURE);
+	//Get headers
+	coff_head = (IMAGE_FILE_HEADER*)&libBase[pe_head + COFF_OFFSET];
+	opt_head = (IMAGE_OPTIONAL_HEADER*)&libBase[pe_head + OPT_OFFSET];
+	section = (IMAGE_SECTION_HEADER*)(libBase + pe_head + coff_head->SizeOfOptionalHeader + sizeof(IMAGE_FILE_HEADER) + NT_HEADER_SIZE);
+
+	for (int i = 0; i < coff_head->NumberOfSections; i++, section++)
+	{
+		FINISH_IF(strcmp((const char*)section_name, section->Name) == 0)
+	}
+	goto fail;
+finish:
+	result = 0;
+	if (section_a != 0)
+	{
+		*section_a = section;
+	}
+fail:
+	return result;
+}
+
+#define VIRTUAL_ADJUST(VA_TRUE, RES, REBASE, RVA, VIRT, RAW) \
+	if (VA_TRUE == FALSE) \
+	{ \
+		RES = REBASE + RVA - VIRT + RAW; \
+	} \
+	else \
+	{ \
+		RES = REBASE + RVA; \
+	}
+
+size_t redlsym(UINT8* libBase, const char* symName, int virtual_address)
+{
+	size_t result = 0;
+	IMAGE_SECTION_HEADER* sections = 0;
+	IMAGE_EXPORT_DIRECTORY* export_directory = 0;
+	DWORD SRA = 0;
+	DWORD SVA = 0;
+	uint32_t* addrNames = 0;
+	const char* funcNameAddr = 0;
+	uint16_t* addrOrd = 0;
+	uint16_t funcOrd = 0;
+	uint32_t* addrFunc = 0;
+	size_t funcAddr = 0;
+	int nameOrd = 0;
+
+	SAFE_BAIL(get_pesection(libBase, ".edata", &sections) == -1);
+
+	// found our section, we had to because if its raw we're fucked
+	SRA = sections->PointerToRawData;
+	SVA = sections->VirtualAddress;
+	export_directory = (IMAGE_EXPORT_DIRECTORY*)(libBase + sections->VirtualAddress);
+	if (virtual_address == FALSE)
+	{
+		export_directory = (IMAGE_EXPORT_DIRECTORY*)(libBase + sections->PointerToRawData);
+	}
+	VIRTUAL_ADJUST(virtual_address, addrNames, libBase, export_directory->AddressOfNames, SVA, SRA);
+	VIRTUAL_ADJUST(virtual_address, addrOrd, libBase, export_directory->AddressOfNameOrdinals, SVA, SRA);
+	VIRTUAL_ADJUST(virtual_address, addrFunc, libBase, export_directory->AddressOfFunctions, SVA, SRA);
+
+	// proceed to use the .edata section
+	for (; nameOrd < export_directory->NumberOfNames; nameOrd++)
+	{
+		VIRTUAL_ADJUST(virtual_address, funcNameAddr, libBase, *(uint32_t*)(addrNames + nameOrd), SVA, SRA);
+		// funName = readString
+		FINISH_IF(strcmp(funcNameAddr, symName) == 0);
+	}
+	goto fail;
+finish:
+	funcOrd = *(uint16_t*)(addrOrd + nameOrd);
+	funcAddr = *(uint32_t*)(addrFunc + funcOrd);
+	if (virtual_address == FALSE)
+	{
+		funcAddr = funcAddr - SVA + SRA;
+	}
+	funcAddr = funcAddr + libBase;
+	
+	//VIRTUAL_ADJUST(virtual_address, funcAddr, libBase, funcAddr, SVA, SRA);
+	//funcAddr = (libBase - sections->VirtualAddress + sections->PointerToRawData);
+	result = funcAddr;
+fail:
 	return result;
 }
