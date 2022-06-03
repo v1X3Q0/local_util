@@ -187,9 +187,34 @@ finish:
 	return result;
 }
 
+int nt_headsize(UINT8* libBase, size_t* nt_head_sz_out)
+{
+	int result = -1;
+	IMAGE_OPTIONAL_HEADER* opt_head = 0;
+	IMAGE_FILE_HEADER* coff_head = 0;
+	DWORD pe_head = 0;
+	IMAGE_SECTION_HEADER* section = 0;
+
+	// get the .edata section
+	SAFE_BAIL(*(UINT16*)(&libBase[0]) != IMAGE_DOS_SIGNATURE);
+	pe_head = *(DWORD*)(&libBase[PE_HEAD_PTR]);
+	SAFE_BAIL(*(DWORD*)(&(libBase[pe_head])) != IMAGE_NT_SIGNATURE);
+	//Get headers
+	coff_head = (IMAGE_FILE_HEADER*)&libBase[pe_head + COFF_OFFSET];
+	opt_head = (IMAGE_OPTIONAL_HEADER*)&libBase[pe_head + OPT_OFFSET];
+
+	result = 0;
+	if (nt_head_sz_out != 0)
+	{
+		*nt_head_sz_out = opt_head->SizeOfHeaders;
+	}
+fail:
+	return result;
+}
+
 int get_pesection(UINT8* libBase, const char* section_name, IMAGE_SECTION_HEADER** section_a)
 {
-	size_t result = 0;
+	int result = -1;
 	IMAGE_OPTIONAL_HEADER* opt_head = 0;
 	IMAGE_FILE_HEADER* coff_head = 0;
 	DWORD pe_head = 0;
@@ -228,6 +253,27 @@ fail:
 	{ \
 		RES = REBASE + RVA; \
 	}
+
+int pe_vatoraw(uint8_t* libBase, size_t symbol_va, void** symbol_out)
+{
+	int result = -1;
+	size_t symTmp = symbol_va;
+	IMAGE_SECTION_HEADER* section_64_static = 0;
+
+	// on the read file
+	SAFE_BAIL(section_with_sym(libBase, symTmp, &section_64_static) == -1);
+
+	symTmp = symTmp - section_64_static->VirtualAddress + section_64_static->PointerToRawData;
+
+	result = 0;
+	if (symbol_out != 0)
+	{
+		*symbol_out = (void*)symTmp;
+	}
+fail:
+	return result;
+}
+
 
 size_t redlsym(UINT8* libBase, const char* symName, int virtual_address)
 {
@@ -269,15 +315,40 @@ size_t redlsym(UINT8* libBase, const char* symName, int virtual_address)
 finish:
 	funcOrd = *(uint16_t*)(addrOrd + nameOrd);
 	funcAddr = *(uint32_t*)(addrFunc + funcOrd);
-	if (virtual_address == FALSE)
-	{
-		funcAddr = funcAddr - SVA + SRA;
-	}
-	funcAddr = funcAddr + libBase;
-	
-	//VIRTUAL_ADJUST(virtual_address, funcAddr, libBase, funcAddr, SVA, SRA);
-	//funcAddr = (libBase - sections->VirtualAddress + sections->PointerToRawData);
 	result = funcAddr;
+fail:
+	return result;
+}
+
+int section_with_sym(uint8_t* nt_header_tmp, size_t sym_address, IMAGE_SECTION_HEADER** section_64_out)
+{
+	int result = -1;
+	IMAGE_OPTIONAL_HEADER* opt_head = 0;
+	IMAGE_FILE_HEADER* coff_head = 0;
+	DWORD pe_head = 0;
+	IMAGE_SECTION_HEADER* section = 0;
+
+	// get the .edata section
+	SAFE_BAIL(*(UINT16*)(&nt_header_tmp[0]) != IMAGE_DOS_SIGNATURE);
+	pe_head = *(DWORD*)(&nt_header_tmp[PE_HEAD_PTR]);
+	SAFE_BAIL(*(DWORD*)(&(nt_header_tmp[pe_head])) != IMAGE_NT_SIGNATURE);
+	//Get headers
+	coff_head = (IMAGE_FILE_HEADER*)&nt_header_tmp[pe_head + COFF_OFFSET];
+	opt_head = (IMAGE_OPTIONAL_HEADER*)&nt_header_tmp[pe_head + OPT_OFFSET];
+	section = (IMAGE_SECTION_HEADER*)(nt_header_tmp + pe_head + coff_head->SizeOfOptionalHeader + sizeof(IMAGE_FILE_HEADER) + NT_HEADER_SIZE);
+
+	for (int i = 0; i < coff_head->NumberOfSections; i++, section++)
+	{
+		FINISH_IF(REGION_CONTAINS(section->VirtualAddress, section->Misc.VirtualSize, sym_address) == TRUE);
+	}
+
+	goto fail;
+finish:
+	result = 0;
+	if (section_64_out != 0)
+	{
+		*section_64_out = section;
+	}
 fail:
 	return result;
 }
