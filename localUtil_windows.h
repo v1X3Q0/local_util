@@ -25,6 +25,7 @@ size_t ridlsym(UINT8* libBase, const char* libName, size_t symName);
 size_t redlsym(UINT8* libBase, const char* symName, int virtual_address);
 int nt_headsize(UINT8* libBase, size_t* nt_head_sz_out);
 int section_with_sym(uint8_t* nt_header_tmp, size_t sym_address, IMAGE_SECTION_HEADER** section_64_out);
+int get_pesection(UINT8* libBase, const char* section_name, IMAGE_SECTION_HEADER** section_a);
 int pe_vatoraw(uint8_t* libBase, size_t symbol_va, void** symbol_out);
 #ifdef __cplusplus
 }
