@@ -25,8 +25,9 @@ void printLastError()
     LocalFree(messageBuffer);
 }
 
-LPVOID isDriverLoaded(const wchar_t* targetLib)
+int isDriverLoaded(const wchar_t* targetLib, void** driver_out)
 {
+	int result = -1;
 	LPVOID drivers[ARRAY_SIZE];
 	DWORD cbNeeded;
 	int cDrivers, i;
@@ -41,17 +42,20 @@ LPVOID isDriverLoaded(const wchar_t* targetLib)
 	{
 		if (GetDeviceDriverBaseName(drivers[i], szDriver, sizeof(szDriver) / sizeof(szDriver[0])))
 		{
-			if (wcscmp(szDriver, targetLib) == 0)
-			{
-				return drivers[i];
-			}
+			FINISH_IF(wcscmp(szDriver, targetLib) == 0);
 			//_tprintf(TEXT("%d: %s\n"), i + 1, szDriver);
 		}
 	}
-
+	goto fail;
+finish:
+	result = 0;
+	if (driver_out != 0)
+	{
+		*driver_out = drivers[i];
+	}
 fail:
 	//_tprintf(TEXT("EnumDeviceDrivers failed; array size needed is %x\n"), cbNeeded / sizeof(LPVOID));
-	return 0;
+	return result;
 }
 
 LPVOID GetModuleBaseAddress(const TCHAR* targetLib)
@@ -103,8 +107,9 @@ fail:
     return baseAddress;
 }
 
-DWORD retEntryPoint(UINT8* targBase)
+DWORD retEntryPoint(UINT8* targBase, DWORD* entryPoint)
 {
+	int result = -1;
 	DWORD pe_base = 0;
 	IMAGE_OPTIONAL_HEADER* opt_head = 0;
 	DWORD addrEntry = 0;
@@ -115,8 +120,14 @@ DWORD retEntryPoint(UINT8* targBase)
 	//Get headers
 	opt_head = (IMAGE_OPTIONAL_HEADER*)&targBase[pe_base + OPT_OFFSET];
 	addrEntry = opt_head->AddressOfEntryPoint;
+	
+	result = 0;
+	if (entryPoint != 0)
+	{
+		*entryPoint = addrEntry;
+	}
 fail:
-	return addrEntry;
+	return result;
 }
 
 // take a library base, look for an import from a library and then return the
