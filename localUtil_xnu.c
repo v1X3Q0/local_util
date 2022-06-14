@@ -22,7 +22,7 @@ int getsegbynamefromheader_64(struct mach_header_64* mach_header_tmp, const char
     {
         if (lc_iter->cmd == LC_SEGMENT_64)
         {
-            seg_tmp = lc_iter;
+            seg_tmp = (struct segment_command_64*)lc_iter;
             FINISH_IF(strcmp(seg_tmp->segname, name) == 0);
         }
         lc_iter = (struct load_command*)((size_t)lc_iter + lc_iter->cmdsize);
@@ -33,7 +33,7 @@ finish:
     result = 0;
     if (seg_out != 0)
     {
-        *seg_out = lc_iter;
+        *seg_out = (struct segment_command_64*)lc_iter;
     }
 fail:
     return result;
