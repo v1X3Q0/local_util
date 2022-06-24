@@ -16,6 +16,8 @@
         goto fail; \
     }
 
+#define HAND_ADDR(x)	(~x & 0xfffffffffffffff8)
+
 #ifdef __cplusplus
 extern "C"
 {
