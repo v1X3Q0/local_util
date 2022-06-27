@@ -50,6 +50,13 @@
         goto fail; \
     }
 
+#define SAFE_CLOSESOCKET(x) \
+    if (x) \
+    { \
+        closesocket(x); \
+        x = 0; \
+    }
+
 // #define SAFE_BAIL(x) \
 //     if (x) \
 //     { \
