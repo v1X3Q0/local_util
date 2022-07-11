@@ -66,33 +66,6 @@ int rstrncmp(const char* s1, const char* s2, size_t maxlen)
     return 0;
 }
 
-#ifdef _WIN32
-#define OSHANDLE HANDLE
-#define OPENREAD(fname) CreateFileA(fname, GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)
-// file to open
-// open for reading
-// share for reading
-// default security
-// existing file only
-// overlapped operation
-// no attr. template
-#define OSSEEK(handle, SEEK_DIR) SetFilePointer(handle, 0, 0, SEEK_DIR)
-#define OSFSZ(handle) GetFileSize(handle, NULL)
-#define OSBA(newAlloc, SZ_ALLOC) \
-    newAlloc = VirtualAlloc(NULL, SZ_ALLOC, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE)
-#define SAFE_OSFCLOSE SAFE_HCLOSE
-#define OSREAD(oshandle, INBUF, NBYTES, OUTCOUNT) ReadFile(oshandle, INBUF, NBYTES, &OUTCOUNT, NULL);
-#else
-#define OSHANDLE FILE*
-#define OPENREAD(fname) fopen(fname, "r")
-#define OSSEEK(handle, SEEK_DIR) fseek(handle, 0, SEEK_DIR)
-#define OSFSZ(handle) ftell(handle)
-#define OSBA(newAlloc, SZ_ALLOC) \
-    posix_memalign(&newAlloc, PAGE_SIZE4K, SZ_ALLOC)
-#define SAFE_OSFCLOSE SAFE_FCLOSE
-#define OSREAD(oshandle, INBUF, NBYTES, OUTCOUNT) fread(INBUF, 1, NBYTES, oshandle)
-#endif
-
 int block_grab(const char* fileTargName, void** allocBase, size_t* fSize)
 {
     int result = -1;
