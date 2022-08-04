@@ -15,8 +15,8 @@ add_library(localUtil_cpp STATIC localUtil.cpp)
 
 # must have json-c installed with
 # sudo apt-get install libjson-c-dev
-if (${MY_HOST_COMPILER} STREQUAL "linux")
-    add_library(jsonUtil STATIC jsonUtil.c)
-    target_include_directories(jsonUtil PRIVATE
-        /usr/include/json-c)
-endif()
+# if (${MY_HOST_COMPILER} STREQUAL "linux")
+#     add_library(jsonUtil STATIC jsonUtil.c)
+#     target_include_directories(jsonUtil PRIVATE
+#         /usr/include/json-c)
+# endif()
