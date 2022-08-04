@@ -5,6 +5,8 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     list(APPEND SOURCES_LIST localUtil_xnu.c)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     list(APPEND SOURCES_LIST localUtil_windows.c)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    list(APPEND SOURCES_LIST localUtil_linux.c)
 endif()
 
 
