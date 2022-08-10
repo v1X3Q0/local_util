@@ -57,13 +57,6 @@
         x = 0; \
     }
 
-// #define SAFE_BAIL(x) \
-//     if (x) \
-//     { \
-//         printf("%s:%d\n", __FILE__, __LINE__); \
-//         goto fail; \
-//     }
-
 #define SAFE_EXIT(x) \
     if (x) \
     { \
@@ -174,8 +167,13 @@
 #define OPENREAD(fname) fopen(fname, "r")
 #define OSSEEK(handle, SEEK_DIR) fseek(handle, 0, SEEK_DIR)
 #define OSFSZ(handle) ftell(handle)
+#ifdef __METALKIT__
+#define OSBA(newAlloc, SZ_ALLOC) \
+    newAlloc = memalign(PAGE_SIZE4K, SZ_ALLOC)
+#else
 #define OSBA(newAlloc, SZ_ALLOC) \
     posix_memalign(&newAlloc, PAGE_SIZE4K, SZ_ALLOC)
+#endif // __METALKIT__
 #define SAFE_OSFCLOSE SAFE_FCLOSE
 #define OSREAD(oshandle, INBUF, NBYTES, OUTCOUNT) fread(INBUF, 1, NBYTES, oshandle)
 #endif
