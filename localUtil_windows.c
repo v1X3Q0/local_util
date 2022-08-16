@@ -265,7 +265,7 @@ fail:
 		RES = REBASE + RVA; \
 	}
 
-int pe_vatoraw(uint8_t* libBase, size_t symbol_va, void** symbol_out)
+int pe_vatoraw(uint8_t* libBase, size_t symbol_va, size_t* symbol_out)
 {
 	int result = -1;
 	size_t symTmp = symbol_va;

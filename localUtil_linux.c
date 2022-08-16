@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <elf.h>
 
+#include "localUtil.h"
+
 uint32_t elf_hash(const uint8_t* name) {
     uint32_t h = 0, g;
     for (; *name; name++) {
@@ -186,7 +188,7 @@ void* redlsym(char* procBase, char* funcName)
 	return result;
 }
 
-int elf_vatoraw(uint8_t* libBase, size_t symbol_va, void** symbol_out)
+int elf_vatoraw(uint8_t* libBase, size_t symbol_va, size_t* symbol_out)
 {
     int result = -1;
     Elf64_Ehdr* ehdr = 0;
