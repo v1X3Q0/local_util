@@ -185,3 +185,31 @@ void* redlsym(char* procBase, char* funcName)
     }
 	return result;
 }
+
+int elf_vatoraw(uint8_t* libBase, size_t symbol_va, void** symbol_out)
+{
+    int result = -1;
+    Elf64_Ehdr* ehdr = 0;
+    Elf64_Phdr* phdr = 0;
+    int i = 0;
+    int offset_tracked = 0;
+
+    ehdr = (Elf64_Ehdr*)(libBase);
+    phdr = (Elf64_Phdr*)(libBase + ehdr->e_phoff);
+
+    for (i = 0; i < ehdr->e_phnum; i++)
+    {
+        FINISH_IF(REGION_CONTAINS(phdr[i].p_vaddr, phdr[i].p_memsz, symbol_va) == 1);        
+    }
+
+    goto fail;
+finish:
+    result = 0;
+    if (symbol_out != 0)
+    {
+        *symbol_out = (symbol_va - phdr[i].p_vaddr) + phdr[i].p_offset;
+    }
+
+fail:
+    return result;
+}

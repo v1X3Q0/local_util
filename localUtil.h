@@ -76,6 +76,19 @@
         continue; \
     }
 
+#define SAFE_BREAK(x) \
+    if (x) \
+    { \
+        break; \
+    }
+
+#define SAFE_PBREAK(x, ...) \
+    if (x) \
+    { \
+        printf(__VA_ARGS__); \
+        break; \
+    }
+
 #define SAFE_PAIL(x, ...) \
     if (x) \
     { \
@@ -106,9 +119,16 @@
     }
 
 #define SAFE_HCLOSE(x) \
-    if (x) \
+    if ((x) != INVALID_HANDLE_VALUE) \
     { \
         CloseHandle(x); \
+        x = INVALID_HANDLE_VALUE; \
+    }
+
+#define SAFE_FREELIB(x) \
+    if ((x) != NULL) \
+    { \
+        FreeLibrary(x); \
         x = 0; \
     }
 

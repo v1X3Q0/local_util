@@ -29,6 +29,7 @@ int nt_headsize(UINT8* libBase, size_t* nt_head_sz_out);
 int section_with_sym(uint8_t* nt_header_tmp, size_t sym_address, IMAGE_SECTION_HEADER** section_64_out);
 int get_pesection(UINT8* libBase, const char* section_name, IMAGE_SECTION_HEADER** section_a);
 int pe_vatoraw(uint8_t* libBase, size_t symbol_va, void** symbol_out);
+#define virt_to_file pe_vatoraw
 int isDriverLoaded(const wchar_t* targetLib, void** driver_out);
 DWORD retEntryPoint(UINT8* targBase, DWORD* entryPoint);
 #ifdef __cplusplus

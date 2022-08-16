@@ -7,6 +7,8 @@ extern "C"
 #endif
 
 void* redlsym(char* procBase, char* funcName);
+int elf_vatoraw(uint8_t* libBase, size_t symbol_va, void** symbol_out);
+#define virt_to_file elf_vatoraw
 
 #ifdef __cplusplus
 }
