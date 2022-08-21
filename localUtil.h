@@ -153,6 +153,13 @@
         x = 0; \
     }
 
+#define SAFE_DELA(x) \
+    if (x) \
+    { \
+        delete[] x; \
+        x = 0; \
+    }
+
 #define SAFE_CLOSEDIR(x) \
     if (x) \
     { \
