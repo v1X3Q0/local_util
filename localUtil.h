@@ -105,10 +105,10 @@
     }
 
 #define SAFE_CLOSE(x) \
-    if (x) \
+    if (x > -1) \
     { \
         close(x); \
-        x = 0; \
+        x = -1; \
     }
 
 #define SAFE_FCLOSE(x) \

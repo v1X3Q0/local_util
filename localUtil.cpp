@@ -21,34 +21,48 @@ void dumpMemT(unsigned char* base, size_t len, const char* format)
    }
 }
 
-void dumpMem(uint8_t* base, size_t len, char format)
+void dumpMem(uint8_t* base, size_t len, char* format_a)
 {
+   char format = format_a[0];
+   const char formatdump[10] = {0};
+   char* formatdumpcur = (char*)formatdump;
+
    printf("UD:");
+   if (format_a[1] == 'x')
+   {
+      sprintf(formatdumpcur, "0x");
+      formatdumpcur = (char*)&formatdump[2];
+   }
+
    if (format == 's')
    {
       printf(" %s", (char*)base);
    }
    else
    {
-      if (format == 'c')
+      if ((format == 'c') || (format == 'b'))
       {
-         dumpMemT<uint8_t>(base, len, "0x%02hhx ");
+         sprintf(formatdumpcur, "%%02hhx ");
+         dumpMemT<uint8_t>(base, len, formatdump);
       }
       else if (format == 'h')
       {
-         dumpMemT<uint16_t>(base, len, "0x%04hx ");
+         sprintf(formatdumpcur, "%%04hx ");
+         dumpMemT<uint16_t>(base, len, formatdump);
       }
       else if (format == 'w' || ((format == 0) && (sizeof(void*) == 4)))
       {
-         dumpMemT<uint32_t>(base, len, "0x%08x ");
+         sprintf(formatdumpcur, "%%08x ");
+         dumpMemT<uint32_t>(base, len, formatdump);
       }
       else if (format == 'q' || ((format == 0) && (sizeof(void*) == 8)))
       {
 #ifdef _WIN32
-         dumpMemT<uint64_t>(base, len, "0x%016llx ");
+         sprintf(formatdumpcur, "%%016llx ");
 #else
-         dumpMemT<uint64_t>(base, len, "0x%016lx ");
+         sprintf(formatdumpcur, "%%016lx ");
 #endif
+         dumpMemT<uint64_t>(base, len, formatdump);
       }
    }
    printf("\n");

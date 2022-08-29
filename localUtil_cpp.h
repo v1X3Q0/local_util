@@ -4,7 +4,7 @@
 #include <vector>
 #include <algorithm>
 
-void dumpMem(uint8_t* base, size_t len, char format);
+void dumpMem(uint8_t* base, size_t len, char* format_a);
 
 template<typename t, typename u>
 int vector_pair_ind(std::vector<std::pair<t, u>>* toSearch, t lookupKey)
