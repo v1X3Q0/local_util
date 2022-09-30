@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C"
 {
+int gen_kallsymmap(std::map<std::string, uint64_t>* out_mapgen);
 #endif
 
 void* redlsym(char* procBase, char* funcName);

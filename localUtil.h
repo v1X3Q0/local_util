@@ -63,6 +63,12 @@
         exit(0); \
     }
 
+#define SAFE_FSCLOSE(x) \
+    if (x.is_open() == true) \
+    { \
+        x.close(); \
+    }
+
 #define SAFE_PEXIT(x, ...) \
     if (x) \
     { \
