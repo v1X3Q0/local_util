@@ -24,8 +24,9 @@
 #define CASE_OVERLAP_R1_ENDS_R2(reg1, reg1sz, reg2, reg2sz) \
     (((reg1 + reg1sz) > reg2) && ((reg1 + reg1sz) < (reg2 + reg2sz)))
 
+// this case is if reg1 is less than reg2, and then gets to or passed it.
 #define CASE_OVERLAP_R1_EATS_R2(reg1, reg1sz, reg2, reg2sz) \
-    ((reg1 < reg2) && ((reg1 + reg1sz) >= (reg2 + reg2sz)))
+    ((reg1 < reg2) && ((reg1 + reg1sz) > (reg2 + reg2sz)))
 
 // first case, reg1 is inside of reg2
 // second case, reg1 ends in reg2
@@ -216,7 +217,8 @@
 extern "C" {
 #endif
 
-size_t rstrnlen(const char* s, size_t maxlen);
+size_t rstrnlenu(const char* s, size_t maxlen);
+size_t strnlenu(const char* s, size_t maxlen);
 size_t rfindnn(const char* s, size_t maxlen);
 int rstrncmp(const char* s1, const char* s2, size_t maxlen);
 int block_grab(const char* fileTargName, void** allocBase, size_t* fSize);

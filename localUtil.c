@@ -20,9 +20,27 @@
 #include "localUtil.h"
 
 // reverse strlen
-size_t rstrnlen(const char* s, size_t maxlen)
+size_t rstrnlenu(const char* s, size_t maxlen)
 {
     for (size_t i = 0; i < maxlen; i++, s--)
+    {
+        if ((*s) == 0)
+        {
+            return i;
+        }
+        // generic non ascii character fail case
+        if ((*s) > 0x7f)
+        {
+            return -1;
+        }
+    }
+    return maxlen;
+}
+
+// reverse strlen
+size_t strnlenu(const char* s, size_t maxlen)
+{
+    for (size_t i = 0; i < maxlen; i++, s++)
     {
         if ((*s) == 0)
         {
