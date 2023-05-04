@@ -9,14 +9,14 @@
 #define PAGE_SIZE4K   0x1000
 #define PAGE_MASK4K   (PAGE_SIZE4K - 1)
 
-#ifdef __linux__
+// #ifdef __linux__
 #ifndef PAGE_SIZE
 #define PAGE_SIZE PAGE_SIZE4K
 #endif
 #ifndef PAGE_MASK
 #define PAGE_MASK PAGE_MASK4K
 #endif
-#endif
+// #endif
 
 #define CASE_OVERLAP_R1_IN_R2(reg1, reg1sz, reg2, reg2sz) \
     ((reg1 >= reg2) && (reg1 < (reg2 + reg2sz)))
