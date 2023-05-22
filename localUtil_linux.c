@@ -96,7 +96,8 @@ Elf64_Sym* gnu_lookup(
         const char* symname = strtab + symtab[symix].st_name;
         const uint32_t hash = chain[symix - symoffset];
 
-        if (namehash|1 == hash|1 && strcmp(name, symname) == 0) {
+        if (((namehash | 1) == (hash | 1)) && (strcmp(name, symname) == 0))
+        {
             return &symtab[symix];
         }
 
