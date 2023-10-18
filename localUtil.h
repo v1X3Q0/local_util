@@ -111,6 +111,13 @@
         goto fail; \
     }
 
+#define SAFE_ERR(x) \
+    if (x) \
+    { \
+        fprintf(stderr, "ERROR %s:%d ", __FILE__, __LINE__); \
+        goto fail; \
+    }
+
 #define SAFE_CLOSE(x) \
     if (x > -1) \
     { \
