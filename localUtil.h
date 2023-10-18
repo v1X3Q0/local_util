@@ -174,6 +174,12 @@
         x = 0; \
     }
 
+#define SAFE_REPOINT(x, y) \
+    if (x != 0) \
+    { \
+        *x = y; \
+    }
+
 #define BIT_PAD(x, TYPE_AUTO, PAD_TO) \
     if (((size_t)x % PAD_TO) != 0) \
     { \

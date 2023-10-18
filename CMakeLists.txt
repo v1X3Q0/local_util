@@ -8,13 +8,13 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     list(APPEND SOURCES_LIST localUtil_linux.c)
 endif()
-add_library(localUtil SHARED ${SOURCES_LIST})
+add_library(localUtil STATIC ${SOURCES_LIST})
 
 set(SOURCES_LIST localUtil.cpp)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     list(APPEND SOURCES_LIST localUtil_linux.cpp)
 endif()
-add_library(localUtil_cpp SHARED ${SOURCES_LIST})
+add_library(localUtil_cpp STATIC ${SOURCES_LIST})
 
 # must have json-c installed with
 # sudo apt-get install libjson-c-dev
