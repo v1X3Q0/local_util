@@ -30,7 +30,7 @@ void dumpMem(uint8_t* base, size_t len, char* format_a)
    printf("UD:");
    if (format_a[1] == 'x')
    {
-      sprintf(formatdumpcur, "0x");
+      snprintf(formatdumpcur, sizeof(formatdump), "0x");
       formatdumpcur = (char*)&formatdump[2];
    }
 
@@ -42,25 +42,25 @@ void dumpMem(uint8_t* base, size_t len, char* format_a)
    {
       if ((format == 'c') || (format == 'b'))
       {
-         sprintf(formatdumpcur, "%%02hhx ");
+         snprintf(formatdumpcur, sizeof(formatdump), "%%02hhx ");
          dumpMemT<uint8_t>(base, len, formatdump);
       }
       else if (format == 'h')
       {
-         sprintf(formatdumpcur, "%%04hx ");
+         snprintf(formatdumpcur, sizeof(formatdump), "%%04hx ");
          dumpMemT<uint16_t>(base, len, formatdump);
       }
       else if (format == 'w' || ((format == 0) && (sizeof(void*) == 4)))
       {
-         sprintf(formatdumpcur, "%%08x ");
+         snprintf(formatdumpcur, sizeof(formatdump), "%%08x ");
          dumpMemT<uint32_t>(base, len, formatdump);
       }
       else if (format == 'q' || ((format == 0) && (sizeof(void*) == 8)))
       {
 #ifdef _WIN32
-         sprintf(formatdumpcur, "%%016llx ");
+         snprintf(formatdumpcur, sizeof(formatdump), "%%016llx ");
 #else
-         sprintf(formatdumpcur, "%%016lx ");
+         snprintf(formatdumpcur, sizeof(formatdump), "%%016lx ");
 #endif
          dumpMemT<uint64_t>(base, len, formatdump);
       }
