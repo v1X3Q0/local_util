@@ -5,11 +5,14 @@
 
 #include "localUtil.h"
 
-uint32_t elf_hash(const uint8_t* name) {
+uint32_t elf_hash(const uint8_t *name)
+{
     uint32_t h = 0, g;
-    for (; *name; name++) {
+    for (; *name; name++)
+    {
         h = (h << 4) + *name;
-        if (g = h & 0xf0000000) {
+        if (g = h & 0xf0000000)
+        {
             h ^= g >> 24;
         }
         h &= ~g;
@@ -20,21 +23,24 @@ uint32_t elf_hash(const uint8_t* name) {
 /* Different architecture have different symbol structure size. */
 /* typedef Elf32_Sym Elf64Sym_t; */
 
-Elf64_Sym* elf_lookup(
-    const char* strtab,      /* string table */
-    Elf64_Sym* symtab,   /* symbol table */
-    const uint32_t* hashtab, /* hash table */
-    const char* symname      /* name to look up */
-) {
+Elf64_Sym *elf_lookup(
+    const char *strtab,      /* string table */
+    Elf64_Sym *symtab,       /* symbol table */
+    const uint32_t *hashtab, /* hash table */
+    const char *symname      /* name to look up */
+)
+{
     const uint32_t hash = elf_hash(symname);
 
     const uint32_t nbucket = hashtab[0];
     const uint32_t nchain = hashtab[1];
-    const uint32_t* bucket = &hashtab[2];
-    const uint32_t* chain = &bucket[nbucket];
+    const uint32_t *bucket = &hashtab[2];
+    const uint32_t *chain = &bucket[nbucket];
 
-    for (uint32_t i = bucket[hash % nbucket]; i; i = chain[i]) {
-        if (strcmp(symname, strtab + symtab[i].st_name) == 0) {
+    for (uint32_t i = bucket[hash % nbucket]; i; i = chain[i])
+    {
+        if (strcmp(symname, strtab + symtab[i].st_name) == 0)
+        {
             return &symtab[i];
         }
     }
@@ -42,10 +48,12 @@ Elf64_Sym* elf_lookup(
     return NULL;
 }
 
-uint32_t gnu_hash(const uint8_t* name) {
+uint32_t gnu_hash(const uint8_t *name)
+{
     uint32_t h = 5381;
 
-    for (; *name; name++) {
+    for (; *name; name++)
+    {
         h = (h << 5) + h + *name;
     }
 
@@ -60,40 +68,42 @@ typedef uint64_t bloom_el_t;
     #define ELFCLASS_BITS 32
 */
 
-Elf64_Sym* gnu_lookup(
-    const char* strtab,      /* string table */
-    Elf64_Sym* symtab,   /* symbol table */
-    const uint32_t* hashtab,     /* hash table */
-    const char* name         /* symbol to look up */
-) {
+Elf64_Sym *gnu_lookup(
+    const char *strtab,      /* string table */
+    Elf64_Sym *symtab,       /* symbol table */
+    const uint32_t *hashtab, /* hash table */
+    const char *name         /* symbol to look up */
+)
+{
     const uint32_t namehash = gnu_hash(name);
 
     const uint32_t nbuckets = hashtab[0];
     const uint32_t symoffset = hashtab[1];
     const uint32_t bloom_size = hashtab[2];
     const uint32_t bloom_shift = hashtab[3];
-    const bloom_el_t* bloom = (void*)&hashtab[4];
-    const uint32_t* buckets = (void*)&bloom[bloom_size];
-    const uint32_t* chain = &buckets[nbuckets];
+    const bloom_el_t *bloom = (void *)&hashtab[4];
+    const uint32_t *buckets = (void *)&bloom[bloom_size];
+    const uint32_t *chain = &buckets[nbuckets];
 
     bloom_el_t word = bloom[(namehash / ELFCLASS_BITS) % bloom_size];
-    bloom_el_t mask = 0
-        | (bloom_el_t)1 << (namehash % ELFCLASS_BITS)
-        | (bloom_el_t)1 << ((namehash >> bloom_shift) % ELFCLASS_BITS);
+    bloom_el_t mask = 0 | (bloom_el_t)1 << (namehash % ELFCLASS_BITS) | (bloom_el_t)1 << ((namehash >> bloom_shift) % ELFCLASS_BITS);
 
     /* If at least one bit is not set, a symbol is surely missing. */
-    if ((word & mask) != mask) {
+    if ((word & mask) != mask)
+    {
         return NULL;
     }
 
     uint32_t symix = buckets[namehash % nbuckets];
-    if (symix < symoffset) {
+    if (symix < symoffset)
+    {
         return NULL;
     }
 
     /* Loop through the chain. */
-    while (1) {
-        const char* symname = strtab + symtab[symix].st_name;
+    while (1)
+    {
+        const char *symname = strtab + symtab[symix].st_name;
         const uint32_t hash = chain[symix - symoffset];
 
         if (((namehash | 1) == (hash | 1)) && (strcmp(name, symname) == 0))
@@ -102,7 +112,8 @@ Elf64_Sym* gnu_lookup(
         }
 
         /* Chain ends with an element with the lowest bit set to 1. */
-        if (hash & 1) {
+        if (hash & 1)
+        {
             break;
         }
 
@@ -112,97 +123,146 @@ Elf64_Sym* gnu_lookup(
     return NULL;
 }
 
-void* redlsym(char* procBase, char* funcName)
+int symtabsearch(char *symname, char *strtabbase, Elf64_Sym *symtabbase, size_t symtab_sz, void **targsym)
 {
-	Elf64_Ehdr* elfHead = 0;
-	Elf64_Phdr* phdr = 0;
-	int i = 0;
-	size_t loadOff = 0xffffffffffffffff;
-	Elf64_Dyn* dynTab = 0;
-	Elf64_Dyn* dynEnt = 0;
-	unsigned int* hashTab = 0;
-	unsigned int* gnu_hashTab = 0;
-	char* strTab = 0;
-	Elf64_Sym* symTab = 0;
-	Elf64_Sym* targetSym = 0;
-    Elf64_Shdr* section_table = 0;
-    const char* shstr_table = 0;
-    void* result = 0;
+    int result = -1;
+    int i = 0;
+    int net_iter = 0;
 
-    elfHead = (Elf64_Ehdr*)(procBase);
-    phdr = (Elf64_Phdr*)(elfHead->e_phoff + procBase);
+    for (net_iter = 0; net_iter < symtab_sz; net_iter)
+    {
+        if (strcmp(symtabbase[i].st_name + strtabbase, symname) == 0)
+        {
+            *targsym = (void *)(symtabbase[i].st_value);
+            result = 0;
+            break;
+        }
 
-    section_table = (Elf64_Shdr*)(procBase + elfHead->e_shoff);
+        i++;
+    }
+
+    return result;
+}
+
+void *redlsym(char *procBase, char *funcName, int isvirtual)
+{
+    Elf64_Ehdr *elfHead = 0;
+    Elf64_Phdr *phdr = 0;
+    int i = 0;
+    size_t loadOff = 0xffffffffffffffff;
+    Elf64_Dyn *dynTab = 0;
+    Elf64_Dyn *dynEnt = 0;
+    unsigned int *hashTab = 0;
+    unsigned int *gnu_hashTab = 0;
+
+    // dynamic symtab/strtab
+    char *strTab = 0;
+    Elf64_Sym *symTab = 0;
+    size_t symTab_sz = 0;
+
+    // shdr symtab/strtab
+    char *sstrTab = 0;
+    Elf64_Sym *ssymTab = 0;
+    size_t ssymTab_sz = 0;
+
+    Elf64_Sym *targetSym = 0;
+    Elf64_Shdr *section_table = 0;
+    const char *shstr_table = 0;
+    void *result = 0;
+
+    elfHead = (Elf64_Ehdr *)(procBase);
+    phdr = (Elf64_Phdr *)(elfHead->e_phoff + procBase);
+
+    section_table = (Elf64_Shdr *)(procBase + elfHead->e_shoff);
     shstr_table = procBase + section_table[elfHead->e_shstrndx].sh_offset;
 
-	for (i = 0; i < elfHead->e_phnum; i++)
-	{
-		switch (phdr[i].p_type)
-		{
-			case PT_DYNAMIC:
-				dynTab = (Elf64_Dyn*)(phdr[i].p_offset + procBase);
-				break;
-			case PT_LOAD:
-				if (loadOff == 0xffffffffffffffff)
-					loadOff = phdr[i].p_vaddr;
-				else if (loadOff > phdr[i].p_vaddr)
-					loadOff = phdr[i].p_vaddr;
-				break;
-		}
-	}
-
-	for (dynEnt = dynTab; dynEnt->d_tag != DT_NULL; dynEnt++)
-	{
-		switch (dynEnt->d_tag)
-		{
-			case DT_HASH:
-				hashTab = (unsigned int*)(dynEnt->d_un.d_val + procBase);
-				break;
-			case DT_GNU_HASH:
-				gnu_hashTab = (unsigned int*)(dynEnt->d_un.d_val + procBase);
-				break;
-			case DT_STRTAB:
-				strTab = (char*)(dynEnt->d_un.d_val + procBase);
-				break;
-			case DT_SYMTAB:
-				symTab = (Elf64_Sym*)(dynEnt->d_un.d_val + procBase);
-				break;
-		}
-	}
-
-	if (gnu_hashTab != 0)
+    // resolve program header stuff
+    for (i = 0; i < elfHead->e_phnum; i++)
     {
-		targetSym = gnu_lookup(strTab, symTab, gnu_hashTab, funcName);
+        switch (phdr[i].p_type)
+        {
+        case PT_DYNAMIC:
+            dynTab = (Elf64_Dyn *)(phdr[i].p_offset + procBase);
+            break;
+        case PT_LOAD:
+            if (loadOff == 0xffffffffffffffff)
+                loadOff = phdr[i].p_vaddr;
+            else if (loadOff > phdr[i].p_vaddr)
+                loadOff = phdr[i].p_vaddr;
+            break;
+        }
     }
-	else
+
+    // resolve dynamic table stuff
+    for (dynEnt = dynTab; dynEnt->d_tag != DT_NULL; dynEnt++)
     {
-		targetSym = elf_lookup(strTab, symTab, hashTab, funcName);
+        switch (dynEnt->d_tag)
+        {
+        case DT_HASH:
+            hashTab = (unsigned int *)(dynEnt->d_un.d_val + procBase);
+            break;
+        case DT_GNU_HASH:
+            gnu_hashTab = (unsigned int *)(dynEnt->d_un.d_val + procBase);
+            break;
+        case DT_STRTAB:
+            strTab = (char *)(dynEnt->d_un.d_val + procBase);
+            break;
+        case DT_SYMTAB:
+            symTab = (Elf64_Sym *)(dynEnt->d_un.d_val + procBase);
+            break;
+        }
     }
-	if (targetSym != 0)
+
+    // resoolve section header stuff
+    for (i = 0; i < elfHead->e_shnum; i++)
     {
-		result = (void*)targetSym->st_value;
+        if (strcmp(shstr_table + section_table[i].sh_name, ".symtab") == 0)
+        {
+            ssymTab = (Elf64_Sym *)(section_table[i].sh_offset + procBase);
+            ssymTab_sz = section_table[i].sh_size;
+        }
+        else if (strcmp(shstr_table + section_table[i].sh_name, ".strtab") == 0)
+        {
+            sstrTab = section_table[i].sh_offset + procBase;
+        }
+    }
+
+    if (gnu_hashTab != 0)
+    {
+        targetSym = gnu_lookup(strTab, symTab, gnu_hashTab, funcName);
     }
     else
     {
-
+        targetSym = elf_lookup(strTab, symTab, hashTab, funcName);
     }
-	return result;
+    if (targetSym != 0)
+    {
+        result = (void *)targetSym->st_value;
+    }
+    else
+    {
+        if (isvirtual == 0)
+        {
+            symtabsearch(funcName, sstrTab, ssymTab, ssymTab_sz, &result);
+        }
+    }
+    return result;
 }
 
-int elf_vatoraw(uint8_t* libBase, size_t symbol_va, size_t* symbol_out)
+int elf_vatoraw(uint8_t *libBase, size_t symbol_va, size_t *symbol_out)
 {
     int result = -1;
-    Elf64_Ehdr* ehdr = 0;
-    Elf64_Phdr* phdr = 0;
+    Elf64_Ehdr *ehdr = 0;
+    Elf64_Phdr *phdr = 0;
     int i = 0;
     int offset_tracked = 0;
 
-    ehdr = (Elf64_Ehdr*)(libBase);
-    phdr = (Elf64_Phdr*)(libBase + ehdr->e_phoff);
+    ehdr = (Elf64_Ehdr *)(libBase);
+    phdr = (Elf64_Phdr *)(libBase + ehdr->e_phoff);
 
     for (i = 0; i < ehdr->e_phnum; i++)
     {
-        FINISH_IF(REGION_CONTAINS(phdr[i].p_vaddr, phdr[i].p_memsz, symbol_va) == 1);        
+        FINISH_IF(REGION_CONTAINS(phdr[i].p_vaddr, phdr[i].p_memsz, symbol_va) == 1);
     }
 
     goto fail;
