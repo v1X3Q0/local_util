@@ -39,6 +39,8 @@
 #define REGION_CONTAINS(reg, regSz, targ_addr) \
     CASE_OVERLAP_R1_IN_R2(targ_addr, 0, reg, regSz)
 
+#define UNUSED(x) (void)(x)
+
 #define FINISH_IF(x) \
     if (x) \
     { \
@@ -219,10 +221,18 @@
     newAlloc = memalign(PAGE_SIZE4K, SZ_ALLOC)
 #else
 #define OSBA(newAlloc, SZ_ALLOC) \
-    posix_memalign(&newAlloc, PAGE_SIZE4K, SZ_ALLOC)
+    { \
+        int TEMP_RESULT_PMA = 0; \
+        TEMP_RESULT_PMA = posix_memalign(&newAlloc, PAGE_SIZE4K, SZ_ALLOC); \
+    }
 #endif // __METALKIT__
 #define SAFE_OSFCLOSE SAFE_FCLOSE
-#define OSREAD(oshandle, INBUF, NBYTES, OUTCOUNT) fread(INBUF, 1, NBYTES, oshandle)
+#define OSREAD(oshandle, INBUF, NBYTES, OUTCOUNT) \
+    { \
+        size_t TEMP_RESULT_FREAD = 0; \
+        TEMP_RESULT_FREAD = fread(INBUF, 1, NBYTES, oshandle); \
+    }
+
 #endif
 
 
@@ -238,6 +248,7 @@ int block_grab(const char* fileTargName, void** allocBase, size_t* fSize);
 unsigned long subint(const char* strbase, size_t strsize, int radix);
 int recurse_op(int (*routine_on_file)(const char*, int, void**),
     const char* path_dir, int count, void** vargs);
+void hexdump(char* buf_in, size_t buf_sz);
 
 #ifdef __cplusplus
 }

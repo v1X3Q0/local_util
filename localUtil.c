@@ -192,3 +192,19 @@ fail:
 #endif
     return result;
 }
+
+void hexdump(char *buf_in, size_t buf_sz)
+{
+    size_t i = 0;
+    printf("UD:%04hx: ", (unsigned short)i);
+    for (i = 0; i < buf_sz; i += 1)
+    {
+        if (((i % 0x10) == 0) && (i != 0))
+        {
+            printf("\n");
+            printf("UD:%04hx: ", (unsigned short)i);
+        }
+        printf("%02x ", buf_in[i]);
+    }
+    printf("\n");
+}
