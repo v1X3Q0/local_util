@@ -116,7 +116,7 @@
 #define SAFE_ERR(x) \
     if (x) \
     { \
-        fprintf(stderr, "ERROR %s:%d ", __FILE__, __LINE__); \
+        fprintf(stderr, "ERROR %s:%d \n", __FILE__, __LINE__); \
         goto fail; \
     }
 
@@ -125,6 +125,13 @@
     { \
         close(x); \
         x = -1; \
+    }
+
+#define SAFE_VFREE(x, y) \
+    if (x != 0) \
+    { \
+        VirtualFree(x, y, MEM_RELEASE); \
+        x = 0; \
     }
 
 #define SAFE_FCLOSE(x) \
