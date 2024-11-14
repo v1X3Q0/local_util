@@ -23,9 +23,15 @@ int vector_pair_ind(std::vector<std::pair<t, u>>* toSearch, t lookupKey)
 }
 
 template<typename t, typename u>
-u vector_pair_key_find(std::vector<std::pair<t, u>>* targetVector, t lookupKey)
+u vector_pair_key_find(std::vector<std::pair<t, u>>* targetVector, t lookupKey, int* index_out)
 {
     int newInd = vector_pair_ind<t, u>(targetVector, lookupKey);
+
+    if (index_out != 0)
+    {
+        *index_out = newInd;
+    }
+
     if (newInd == -1)
     {
         return 0;

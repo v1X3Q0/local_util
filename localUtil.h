@@ -9,14 +9,14 @@
 #define PAGE_SIZE4K   0x1000
 #define PAGE_MASK4K   (PAGE_SIZE4K - 1)
 
-#ifdef __linux__
+// #ifdef __linux__
 #ifndef PAGE_SIZE
 #define PAGE_SIZE PAGE_SIZE4K
 #endif
 #ifndef PAGE_MASK
 #define PAGE_MASK PAGE_MASK4K
 #endif
-#endif
+// #endif
 
 #define CASE_OVERLAP_R1_IN_R2(reg1, reg1sz, reg2, reg2sz) \
     ((reg1 >= reg2) && (reg1 < (reg2 + reg2sz)))
@@ -38,6 +38,8 @@
     
 #define REGION_CONTAINS(reg, regSz, targ_addr) \
     CASE_OVERLAP_R1_IN_R2(targ_addr, 0, reg, regSz)
+
+#define UNUSED(x) (void)(x)
 
 #define FINISH_IF(x) \
     if (x) \
@@ -111,6 +113,13 @@
         goto fail; \
     }
 
+#define SAFE_ERR(x) \
+    if (x) \
+    { \
+        fprintf(stderr, "ERROR %s:%d ", __FILE__, __LINE__); \
+        goto fail; \
+    }
+
 #define SAFE_CLOSE(x) \
     if (x > -1) \
     { \
@@ -174,6 +183,12 @@
         x = 0; \
     }
 
+#define SAFE_REPOINT(x, y) \
+    if (x != 0) \
+    { \
+        *x = y; \
+    }
+
 #define BIT_PAD(x, TYPE_AUTO, PAD_TO) \
     if (((size_t)x % PAD_TO) != 0) \
     { \
@@ -206,10 +221,18 @@
     newAlloc = memalign(PAGE_SIZE4K, SZ_ALLOC)
 #else
 #define OSBA(newAlloc, SZ_ALLOC) \
-    posix_memalign(&newAlloc, PAGE_SIZE4K, SZ_ALLOC)
+    { \
+        int TEMP_RESULT_PMA = 0; \
+        TEMP_RESULT_PMA = posix_memalign(&newAlloc, PAGE_SIZE4K, SZ_ALLOC); \
+    }
 #endif // __METALKIT__
 #define SAFE_OSFCLOSE SAFE_FCLOSE
-#define OSREAD(oshandle, INBUF, NBYTES, OUTCOUNT) fread(INBUF, 1, NBYTES, oshandle)
+#define OSREAD(oshandle, INBUF, NBYTES, OUTCOUNT) \
+    { \
+        size_t TEMP_RESULT_FREAD = 0; \
+        TEMP_RESULT_FREAD = fread(INBUF, 1, NBYTES, oshandle); \
+    }
+
 #endif
 
 
@@ -225,6 +248,7 @@ int block_grab(const char* fileTargName, void** allocBase, size_t* fSize);
 unsigned long subint(const char* strbase, size_t strsize, int radix);
 int recurse_op(int (*routine_on_file)(const char*, int, void**),
     const char* path_dir, int count, void** vargs);
+void hexdump(char* buf_in, size_t buf_sz);
 
 #ifdef __cplusplus
 }
