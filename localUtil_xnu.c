@@ -11,6 +11,8 @@
 #include "localUtil.h"
 #include "localUtil_xnu.h"
 
+#define SUPER_APPLE_MCGHEE 1
+
 int getsegbynamefromheader_64(struct mach_header_64* mach_header_tmp, const char* name, struct segment_command_64** seg_out)
 {
     int result = -1;
