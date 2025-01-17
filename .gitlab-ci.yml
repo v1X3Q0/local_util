@@ -1,0 +1,16 @@
+# .install_dependencies:
+#   before_script:
+build-job:
+  tags:
+    - linux
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+    GIT_SUBMODULE_DEPTH: 1
+  script:
+    - apt-get update && apt-get install -y cmake make gcc g++ clang
+    - mkdir -p build-out && cd build-out
+    - cmake ..
+    - make
+
+
