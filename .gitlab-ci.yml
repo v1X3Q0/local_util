@@ -1,6 +1,6 @@
 # .install_dependencies:
 #   before_script:
-build-job:
+build-linux:
   tags:
     - linux
   stage: build
@@ -13,4 +13,14 @@ build-job:
     - cmake ..
     - make
 
-
+build-mac:
+  tags:
+    - mac
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+    GIT_SUBMODULE_DEPTH: 1
+  script:
+    - mkdir -p build-out && cd build-out
+    - cmake ..
+    - make
