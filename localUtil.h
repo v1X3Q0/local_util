@@ -127,6 +127,27 @@
         x = -1; \
     }
 
+#define SAFE_CLOSE0(x) \
+    if (x != 0) \
+    { \
+        close(x); \
+        x = 0; \
+    }
+
+#define SAFE_KILL(x) \
+    if ((x != 0) && (x != -1)) \
+    { \
+        kill(pid, SIGKILL); \
+        x = -1; \
+    }
+
+#define SAFE_MP_DEALLOC(x) \
+    if (x != 0) \
+    { \
+        mach_port_deallocate(mach_task_self(), x); \
+        x = 0; \
+    }
+
 #define SAFE_VFREE(x, y) \
     if (x != 0) \
     { \
