@@ -13,6 +13,11 @@
 
 #define SUPER_APPLE_MCGHEE 1
 
+int macho_vatoraw(uint8_t* libBase, size_t symbol_va, size_t* symbol_out)
+{
+    return symbol_va;
+}
+
 int getsegbynamefromheader_64(struct mach_header_64* mach_header_tmp, const char* name, struct segment_command_64** seg_out)
 {
     int result = -1;

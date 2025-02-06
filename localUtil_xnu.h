@@ -12,6 +12,9 @@ int getloadcommandfrommach(struct mach_header_64* mach_header_tmp, uint32_t lc_t
 int getpidbyname(const char* proc_name, pid_t* pid_out);
 int section_with_sym(struct mach_header_64* mach_header_tmp, size_t sym_address, struct section_64** section_64_out);
 int getsegbynamefromheader_64(struct mach_header_64* mach_header_tmp, const char* name, struct segment_command_64** seg_out);
+int macho_vatoraw(uint8_t* libBase, size_t symbol_va, size_t* symbol_out);
+
+#define virt_to_file macho_vatoraw
 
 #ifdef __cplusplus
 }
