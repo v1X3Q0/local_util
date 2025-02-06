@@ -24,3 +24,16 @@ build-mac:
     - mkdir -p build-out && cd build-out
     - cmake ..
     - make
+
+build-job:
+  tags:
+    - windows
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+    GIT_SUBMODULE_DEPTH: 1
+  script:
+    - mkdir -p build-out
+    - cd build-out
+    - cmake ..
+    - MSBuild.exe LOCAL_UTIL.sln
