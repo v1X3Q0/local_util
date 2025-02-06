@@ -33,7 +33,7 @@ build-windows:
     GIT_SUBMODULE_STRATEGY: normal
     GIT_SUBMODULE_DEPTH: 1
   script:
-    - rm build-out -r -Force; exit 0
+    # - rm build-out -r -Force; exit 0
     - mkdir -p build-out
     - cd build-out
     - cmake ..
