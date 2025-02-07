@@ -1,7 +1,7 @@
 #ifndef LOCALUTIL_LINUX_H
 #define LOCALUTIL_LINUX_H
 
-// int gen_kallsymmap(std::map<std::string, uint64_t>* out_mapgen);
+int gen_kallsymmap(std::map<std::string, uint64_t>* out_mapgen);
 #ifdef __cplusplus
 extern "C"
 {
